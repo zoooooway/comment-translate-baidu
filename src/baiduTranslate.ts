@@ -5,31 +5,13 @@ const querystring = require('querystring');
 import { workspace } from 'vscode';
 import { ITranslate, ITranslateOptions } from 'comment-translate-manager';
 import { TextDecoder, TextEncoder } from 'util';
-import { StringDecoder } from 'string_decoder';
-import { randomBytes, randomInt, randomUUID, sign } from 'crypto';
 
 const PREFIXCONFIG = 'baiduTranslate';
-
-const langMaps: Map<string, string> = new Map([
-    ['zh-CN', 'zh'],
-    ['zh-TW', 'zh'],
-]);
-
-function convertLang(src: string) {
-    if (langMaps.has(src)) {
-        return langMaps.get(src);
-    }
-    return src.toLocaleUpperCase();
-}
 
 export function getConfig<T>(key: string): T | undefined {
     let configuration = workspace.getConfiguration(PREFIXCONFIG);
     return configuration.get<T>(key);
 }
-
-export type BaiduPreserveFormatting = '0' | '1';
-export type BaiduFormality = "default" | "more" | "less";
-
 
 interface BaiduTranslateOption {
     appId?: string;
@@ -37,9 +19,11 @@ interface BaiduTranslateOption {
     targetLang?: string;
 }
 interface Response {
-    translations: {
-        'detected_source_language': string;
-        text: string;
+    'from': string;
+    'to': string;
+    'trans_result': {
+        'src': string;
+        'dst': string;
     }[];
 }
 
@@ -68,54 +52,58 @@ export class BaiduTranslate implements ITranslate {
     }
 
     async translate(content: string, { from = 'auto' }: ITranslateOptions) {
+        console.log("<-->", content);
         const url = `https://fanyi-api.baidu.com/api/trans/vip/translate`;
 
         if (!this._defaultOption.appId) {
             throw new Error('Please check the configuration of appId!');
         }
 
-        const encodeContent = new TextDecoder().decode(new TextEncoder().encode(content));
+        if (!this._defaultOption.appSecret) {
+            throw new Error('Please check the configuration of appSecret!');
+        }
+
+        const utf8Content = new TextDecoder().decode(new TextEncoder().encode(content));
 
         const to = this._defaultOption.targetLang;
         const appId = this._defaultOption.appId;
         const appSecret = this._defaultOption.appSecret;
-        const salt = new TextDecoder().decode(randomBytes(10));
+        const salt = Math.random().toString(16).slice(2);
+
+        let md5 = new Md5();
+
+        md5.appendStr(appId)
+            .appendStr(utf8Content)
+            .appendStr(salt)
+            .appendStr(appSecret);
+
+        const sign = md5.end(false);
 
         const data = {
-            'q': encodeContent,
+            'q': utf8Content,
             'from': from,
             'to': to,
             'appid': appId,
             'appSecret': appSecret,
-            'sign': appSecret,
+            'sign': sign,
             'salt': salt,
-
         };
-
-        
-        let md5 = new Md5();
-
-        // Append incrementally your file or other input
-        // Methods are chainable
-        md5.appendStr(data.appid)
-            .appendAsciiStr('a different string')
-            .appendByteArray(blob);
-
-        // Generate the MD5 hex string
-        md5.end();
 
         const config: AxiosRequestConfig = {
             headers: { "Content-Type": "application/x-www-form-urlencoded" }
         };
 
-        let res = await axios.post<Response>(url, querystring.stringify(data), config);
-
-        return res.data.translations[0].text;
+        let req = querystring.stringify(data);
+        let req2 = req.replace("%20%40", "%0A%40");
+        let res = await axios.post<Response>(url, req2, config);
+        
+        return res.data.trans_result.map(e => e.dst).join("\n");
     }
 
 
-    link(content: string, { to = 'auto' }: ITranslateOptions) {
-        let str = `https://fanyi-api.baidu.com/api/trans/vip/translate/${convertLang(to)}/${encodeURIComponent(content)}`;
+    link(content: string, { }: ITranslateOptions) {
+        // Useless, baidu is not compatible
+        let str = `https://fanyi-api.baidu.com/api/trans/vip/translate`;
         return `[Baidu](${str})`;
     }
 
