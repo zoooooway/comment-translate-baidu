@@ -10,7 +10,7 @@ Please install '[comment-translate](https://github.com/intellism/vscode-comment-
 
 ## Use
 1. After installation, call the "Change translation source" command of "Comment Translate"
-2. Check "Baidu translate" to configure the plugin API account
+2. Check "baidu" to configure the plugin API account
 3. Directly use the "Comment Translate" interactive mode to translate the corresponding text
 
 ## Extension Settings
