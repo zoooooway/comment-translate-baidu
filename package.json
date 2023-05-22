@@ -2,7 +2,7 @@
   "name": "comment-translate-plugin-baidu",
   "displayName": "comment-translate-plugin-baidu",
   "description": "comment-translate-plugin-baidu source for comment-translate",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "zoooooway",
   "engines": {
     "vscode": "^1.70.0"
@@ -34,6 +34,10 @@
           "baiduTranslate.appSecret": {
             "type": "string",
             "markdownDescription": "You need an authentication secret to access to the API.[Accessing the API](https://fanyi-api.baidu.com/doc/12)"
+          },
+          "baiduTranslate.targetLang": {
+            "type": "string",
+            "markdownDescription": "Set which language to translate into. For example: zh, en. [Supported languages](https://fanyi-api.baidu.com/doc/12)"
           }
         }
       }

@@ -18,7 +18,8 @@ Please install '[comment-translate](https://github.com/intellism/vscode-comment-
 This extension contributes the following settings:
 
 * `baiduTranslate.appId`: set to `appId` to request
-* `deeplTranslate.appSecret`: set to `appSecret` to request
+* `baidulTranslate.appSecret`: set to `appSecret` to request
+* `baidulTranslate.targetLang`: set to `targetLang` to request
 
 ## Known Issues
 

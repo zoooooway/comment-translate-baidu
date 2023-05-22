@@ -46,7 +46,7 @@ export class BaiduTranslate implements ITranslate {
         const defaultOption: BaiduTranslateOption = {
             appId: getConfig<string>('appId'),
             appSecret: getConfig<string>('appSecret'),
-            targetLang: getConfig<string>('targetLang') ? getConfig<string>('targetLang') : "zh",
+            targetLang: getConfig<string>('targetLang'),
         };
         return defaultOption;
     }
@@ -61,6 +61,10 @@ export class BaiduTranslate implements ITranslate {
 
         if (!this._defaultOption.appSecret) {
             throw new Error('Please check the configuration of appSecret!');
+        }
+        
+        if (!this._defaultOption.targetLang) {
+            throw new Error('Please check the configuration of target language!');
         }
 
         const utf8Content = new TextDecoder().decode(new TextEncoder().encode(content));
